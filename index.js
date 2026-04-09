@@ -1,5 +1,10 @@
-const express = require ('express')
-const app = express ()
+const express = require('express')
+const cors = require('cors')
+
+const app = express()
+
+app.use(cors())
+app.use(express.json())
 
 const carros = {
     tipos: [
@@ -270,17 +275,29 @@ const carros = {
             ]
         }
     ]
-};
+}
 
-app.get('/',(req,res) => {
+app.get('/', (req, res) => {
     res.send('api de carros funcionando')
 })
 
-app.get('/carros',(req,res) => {
-    res.json(carros);
+app.get('/carros', (req, res) => {
+    res.json(carros)
 })
 
-app.listen(3000,() =>{
-    console.log('servidor on')
+app.get('/carros/tipo/:nombre', (req, res) => {
+    const nombre = req.params.nombre.toLowerCase()
+
+    const tipoEncontrado = carros.tipos.find(tipo => tipo.nombre === nombre)
+
+    if (tipoEncontrado) {
+        res.json(tipoEncontrado.autos)
+    } else {
+        res.status(404).json({ error: 'Tipo no encontrado' })
+    }
+})
+
+app.listen(3000, () => {
+    console.log('Servidor corriendo en puerto 3000')
 })
 
