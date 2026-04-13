@@ -1,10 +1,10 @@
-const express = require('express')
-const cors = require('cors')
+const express = require('express');
+const cors = require('cors');
 
-const app = express()
+const app = express();
 
-app.use(cors())
-app.use(express.json())
+app.use(cors());
+app.use(express.json());
 
 const carros = {
     tipos: [
@@ -275,27 +275,22 @@ const carros = {
             ]
         }
     ]
-}
-
+};
 
 app.post('/carros', (req, res) => {
-    const nuevoCarro = req.body
+    const nuevoCarro = req.body;
 
-    // Validar que venga el tipo
     if (!nuevoCarro.tipo) {
-        return res.status(400).json({ error: 'Debe incluir el tipo del carro' })
+        return res.status(400).json({ error: 'Debe incluir el tipo del carro' });
     }
 
-    const tipoBuscado = nuevoCarro.tipo.toLowerCase()
-
-    // Buscar el tipo donde se va a guardar
-    const tipoEncontrado = carros.tipos.find(tipo => tipo.nombre === tipoBuscado)
+    const tipoBuscado = nuevoCarro.tipo.toLowerCase();
+    const tipoEncontrado = carros.tipos.find(tipo => tipo.nombre === tipoBuscado);
 
     if (!tipoEncontrado) {
-        return res.status(404).json({ error: 'Tipo no encontrado' })
+        return res.status(404).json({ error: 'Tipo no encontrado' });
     }
 
-    // Crear el objeto sin el campo "tipo"
     const carroAguardar = {
         nombre: nuevoCarro.nombre,
         marca: nuevoCarro.marca,
@@ -306,38 +301,79 @@ app.post('/carros', (req, res) => {
         velocidadMax: nuevoCarro.velocidadMax,
         combustible: nuevoCarro.combustible,
         imagen: nuevoCarro.imagen
-    }
+    };
 
-    // Insertar en el array correspondiente
-    tipoEncontrado.autos.push(carroAguardar)
+    tipoEncontrado.autos.push(carroAguardar);
 
     res.status(201).json({
         mensaje: 'Carro agregado correctamente',
         carro: carroAguardar
-    })
-})
+    });
+});
 
 app.get('/', (req, res) => {
-    res.send('api de carros funcionando')
-})
+    res.send('api de carros funcionando');
+});
 
 app.get('/carros', (req, res) => {
-    res.json(carros)
-})
+    res.json(carros);
+});
 
 app.get('/carros/tipo/:nombre', (req, res) => {
-    const nombre = req.params.nombre.toLowerCase()
-
-    const tipoEncontrado = carros.tipos.find(tipo => tipo.nombre === nombre)
+    const nombre = req.params.nombre.toLowerCase();
+    const tipoEncontrado = carros.tipos.find(tipo => tipo.nombre === nombre);
 
     if (tipoEncontrado) {
-        res.json(tipoEncontrado.autos)
+        res.json(tipoEncontrado.autos);
     } else {
-        res.status(404).json({ error: 'Tipo no encontrado' })
+        res.status(404).json({ error: 'Tipo no encontrado' });
     }
-})
+});
+
+app.put('/carros/:nombre', (req, res) => {
+    const nombreBuscado = req.params.nombre.toLowerCase();
+    let carroEncontrado = null;
+
+    carros.tipos.forEach(tipo => {
+        tipo.autos.forEach(auto => {
+            if (auto.nombre.toLowerCase() === nombreBuscado) {
+                carroEncontrado = auto;
+            }
+        });
+    });
+
+    if (!carroEncontrado) {
+        return res.status(404).json({ error: 'Carro no encontrado' });
+    }
+
+    Object.assign(carroEncontrado, req.body);
+
+    res.json({
+        mensaje: 'Carro actualizado correctamente',
+        carro: carroEncontrado
+    });
+});
+
+app.delete('/carros/:nombre', (req, res) => {
+    const nombreBuscado = req.params.nombre.toLowerCase();
+    let eliminado = false;
+
+    carros.tipos.forEach(tipo => {
+        const index = tipo.autos.findIndex(auto => auto.nombre.toLowerCase() === nombreBuscado);
+
+        if (index !== -1) {
+            tipo.autos.splice(index, 1);
+            eliminado = true;
+        }
+    });
+
+    if (!eliminado) {
+        return res.status(404).json({ error: 'Carro no encontrado' });
+    }
+
+    res.json({ mensaje: 'Carro eliminado correctamente' });
+});
 
 app.listen(3000, () => {
-    console.log('Servidor corriendo en puerto 3000')
-})
-
+    console.log('Servidor corriendo en puerto 3000');
+});
