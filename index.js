@@ -316,6 +316,7 @@ app.post('/carros', (req, res) => {
         carro: carroAguardar
     })
 })
+
 app.get('/', (req, res) => {
     res.send('api de carros funcionando')
 })
