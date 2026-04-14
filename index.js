@@ -284,30 +284,19 @@ app.post('/carros', (req, res) => {
         return res.status(400).json({ error: 'Debe incluir el tipo del carro' });
     }
 
-    const tipoBuscado = nuevoCarro.tipo.toLowerCase();
-    const tipoEncontrado = carros.tipos.find(tipo => tipo.nombre === tipoBuscado);
+    const tipoEncontrado = carros.tipos.find(
+        tipo => tipo.nombre === nuevoCarro.tipo.toLowerCase()
+    );
 
     if (!tipoEncontrado) {
         return res.status(404).json({ error: 'Tipo no encontrado' });
     }
 
-    const carroAguardar = {
-        nombre: nuevoCarro.nombre,
-        marca: nuevoCarro.marca,
-        año: nuevoCarro.año,
-        precio: nuevoCarro.precio,
-        color: nuevoCarro.color,
-        potencia: nuevoCarro.potencia,
-        velocidadMax: nuevoCarro.velocidadMax,
-        combustible: nuevoCarro.combustible,
-        imagen: nuevoCarro.imagen
-    };
-
-    tipoEncontrado.autos.push(carroAguardar);
+    tipoEncontrado.autos.push(nuevoCarro);
 
     res.status(201).json({
         mensaje: 'Carro agregado correctamente',
-        carro: carroAguardar
+        carro: nuevoCarro
     });
 });
 
@@ -323,20 +312,20 @@ app.get('/carros/tipo/:nombre', (req, res) => {
     const nombre = req.params.nombre.toLowerCase();
     const tipoEncontrado = carros.tipos.find(tipo => tipo.nombre === nombre);
 
-    if (tipoEncontrado) {
-        res.json(tipoEncontrado.autos);
-    } else {
-        res.status(404).json({ error: 'Tipo no encontrado' });
+    if (!tipoEncontrado) {
+        return res.status(404).json({ error: 'Tipo no encontrado' });
     }
+
+    res.json(tipoEncontrado.autos);
 });
 
 app.put('/carros/:nombre', (req, res) => {
-    const nombreBuscado = req.params.nombre.toLowerCase();
+    const nombreBuscado = decodeURIComponent(req.params.nombre).toLowerCase().trim();
     let carroEncontrado = null;
 
     carros.tipos.forEach(tipo => {
         tipo.autos.forEach(auto => {
-            if (auto.nombre.toLowerCase() === nombreBuscado) {
+            if (auto.nombre.toLowerCase().trim() === nombreBuscado) {
                 carroEncontrado = auto;
             }
         });
@@ -355,11 +344,13 @@ app.put('/carros/:nombre', (req, res) => {
 });
 
 app.delete('/carros/:nombre', (req, res) => {
-    const nombreBuscado = req.params.nombre.toLowerCase();
+    const nombreBuscado = decodeURIComponent(req.params.nombre).toLowerCase().trim();
     let eliminado = false;
 
     carros.tipos.forEach(tipo => {
-        const index = tipo.autos.findIndex(auto => auto.nombre.toLowerCase() === nombreBuscado);
+        const index = tipo.autos.findIndex(auto =>
+            auto.nombre.toLowerCase().trim() === nombreBuscado
+        );
 
         if (index !== -1) {
             tipo.autos.splice(index, 1);
